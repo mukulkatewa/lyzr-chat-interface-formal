@@ -1,12 +1,25 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { ChatInterface } from '@/components/chat/ChatInterface';
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="flex flex-col h-screen bg-background font-sans">
+      <header className="border-b bg-card">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between">
+            <h1 className="text-xl font-semibold text-foreground">
+              Business Report AI Assistant
+            </h1>
+          </div>
+        </div>
+      </header>
+      <main className="flex-1 overflow-hidden">
+        <div className="container mx-auto h-full max-w-4xl py-6">
+            <div className="relative flex h-full min-h-[50vh] flex-col rounded-xl bg-card shadow-lg border">
+                <ChatInterface />
+            </div>
+        </div>
+      </main>
     </div>
   );
 };
