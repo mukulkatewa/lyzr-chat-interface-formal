@@ -14,13 +14,13 @@ export function ChatMessage({ message }: ChatMessageProps) {
   return (
     <div
       className={cn(
-        'flex items-start gap-4 rounded-lg px-4 py-3 text-sm',
-        isUser ? 'justify-end' : 'bg-muted'
+        'flex items-start gap-3',
+        isUser && 'justify-end'
       )}
     >
       {!isUser && (
-        <span className="relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full items-center justify-center bg-primary text-primary-foreground">
-          <Bot className="h-5 w-5" />
+        <span className="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-full items-center justify-center bg-primary/10 text-primary">
+          <Bot className="h-4 w-4" />
         </span>
       )}
       <div className={cn(
@@ -28,13 +28,16 @@ export function ChatMessage({ message }: ChatMessageProps) {
         isUser ? 'items-end' : 'items-start'
       )}>
         <div className={cn(
-          'rounded-lg px-3 py-2 prose prose-sm max-w-full dark:prose-invert',
-          isUser ? 'bg-primary text-primary-foreground prose-invert' : 'bg-card border'
+          'rounded-xl px-4 py-2 prose prose-sm max-w-full dark:prose-invert',
+          isUser 
+            ? 'bg-primary text-primary-foreground prose-invert' 
+            : 'bg-muted'
         )}>
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
-              a: ({ node, ...props }) => <a {...props} target="_blank" rel="noopener noreferrer" />,
+              a: ({ node, ...props }) => <a {...props} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80" />,
+              p: ({node, ...props}) => <p {...props} className="my-0" />,
             }}
           >
             {message.content}
@@ -42,8 +45,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
         </div>
       </div>
       {isUser && (
-        <span className="relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full items-center justify-center bg-card border">
-          <User className="h-5 w-5" />
+        <span className="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-full items-center justify-center bg-muted">
+          <User className="h-4 w-4 text-foreground" />
         </span>
       )}
     </div>

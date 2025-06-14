@@ -76,7 +76,7 @@ export function ChatInterface() {
     {
       role: 'assistant',
       content:
-        "Hello! I'm your **Business Report AI Assistant**. How can I help you today? You can ask me for things like:\n\n*   A summary of recent sales figures.\n*   A draft for a project proposal.\n*   An analysis of market trends.",
+        "Hello! I'm your **AI Assistant**. How can I help you today? You can ask me for things like:\n\n*   A summary of recent sales figures.\n*   A draft for a project proposal.\n*   An analysis of market trends.",
     },
   ]);
   const [inputValue, setInputValue] = useState('');
@@ -120,34 +120,34 @@ export function ChatInterface() {
   return (
     <div className="flex flex-col h-full">
       <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
-        <div className="space-y-4">
+        <div className="space-y-6">
           {messages.map((msg, index) => (
             <ChatMessage key={index} message={msg} />
           ))}
           {mutation.isPending && (
-            <div className="flex items-start gap-4 rounded-lg px-4 py-3 text-sm bg-muted">
-              <span className="relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full items-center justify-center bg-primary text-primary-foreground">
-                <LoaderCircle className="h-5 w-5 animate-spin" />
+            <div className="flex items-start gap-3">
+              <span className="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-full items-center justify-center bg-primary/10 text-primary">
+                <Bot className="h-4 w-4" />
               </span>
               <div className="flex flex-col gap-1 items-start">
-                <div className="rounded-lg p-3 bg-card border">
-                  <p>Thinking...</p>
+                <div className="rounded-xl p-3 bg-muted border">
+                  <LoaderCircle className="h-5 w-5 animate-spin text-primary" />
                 </div>
               </div>
             </div>
           )}
         </div>
       </ScrollArea>
-      <div className="border-t bg-card p-4">
-        <form onSubmit={handleSubmit} className="flex items-center gap-2">
+      <div className="border-t bg-background p-4">
+        <form onSubmit={handleSubmit} className="flex items-center gap-4">
           <Input
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="Type your message..."
+            placeholder="Ask me anything..."
             className="flex-1"
             disabled={mutation.isPending}
           />
-          <Button type="submit" disabled={!inputValue.trim() || mutation.isPending}>
+          <Button type="submit" size="icon" disabled={!inputValue.trim() || mutation.isPending}>
             <Send className="h-4 w-4" />
             <span className="sr-only">Send</span>
           </Button>
