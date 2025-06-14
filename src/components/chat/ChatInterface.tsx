@@ -33,9 +33,21 @@ async function getAiResponse(message: string): Promise<string> {
 
   const data = await response.json();
   console.log('API Response:', data);
-  // Assuming the response has a 'response' field with the AI message.
-  // This might need adjustment based on the actual API response structure.
-  return data.response || "Sorry, I couldn't get a response.";
+
+  // The 'response' field might contain a stringified JSON. Let's try to parse it.
+  let aiMessage = data.response || "Sorry, I couldn't get a response.";
+
+  try {
+    const parsed = JSON.parse(aiMessage);
+    // If it parses and the result has a 'response' property, use that.
+    if (parsed && parsed.response) {
+      aiMessage = parsed.response;
+    }
+  } catch (e) {
+    // If parsing fails, it's not a JSON string, so we'll use the original content.
+  }
+
+  return aiMessage;
 }
 
 export function ChatInterface() {
