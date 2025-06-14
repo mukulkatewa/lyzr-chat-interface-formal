@@ -6,21 +6,29 @@ import { Send, LoaderCircle, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { aiconfig } from '@/config';
+import { aiconfigs } from '@/config';
 import { ReportDisplay } from './ReportDisplay';
 import { Skeleton } from "@/components/ui/skeleton";
 
-async function getAiResponse(message: string): Promise<string> {
-  const response = await fetch(aiconfig.apiUrl, {
+interface AgentConfig {
+  apiKey: string;
+  apiUrl: string;
+  userId: string;
+  agentId: string;
+  sessionId: string;
+}
+
+async function getAiResponse({ message, agentConfig }: { message: string, agentConfig: AgentConfig }): Promise<string> {
+  const response = await fetch(agentConfig.apiUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': aiconfig.apiKey,
+      'x-api-key': agentConfig.apiKey,
     },
     body: JSON.stringify({
-      user_id: aiconfig.userId,
-      agent_id: aiconfig.agentId,
-      session_id: aiconfig.sessionId,
+      user_id: agentConfig.userId,
+      agent_id: agentConfig.agentId,
+      session_id: agentConfig.sessionId,
       message: message,
     }),
   });
@@ -56,6 +64,17 @@ async function getAiResponse(message: string): Promise<string> {
   return aiMessage;
 }
 
+async function generateCombinedReport(message: string): Promise<string> {
+  // Call both APIs in parallel
+  const promises = aiconfigs.map(agentConfig => 
+    getAiResponse({ message, agentConfig })
+  );
+  
+  const results = await Promise.all(promises);
+  
+  // Combine results with headers and a separator
+  return results.map((res, index) => `## Part ${index + 1} of the Report\n\n${res}`).join('\n\n---\n\n');
+}
 
 export function ReportGenerator() {
   const [prompt, setPrompt] = useState('');
@@ -63,7 +82,7 @@ export function ReportGenerator() {
   const { toast } = useToast();
 
   const mutation = useMutation({
-    mutationFn: getAiResponse,
+    mutationFn: generateCombinedReport,
     onSuccess: (data) => {
       setReport(data);
     },
