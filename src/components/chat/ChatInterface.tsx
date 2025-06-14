@@ -42,7 +42,8 @@ export function ChatInterface() {
   const [messages, setMessages] = useState<ChatMessageType[]>([
     {
       role: 'assistant',
-      content: 'Hello! How can I assist you with your business report today?',
+      content:
+        "Hello! I'm your **Business Report AI Assistant**. How can I help you today? You can ask me for things like:\n\n*   A summary of recent sales figures.\n*   A draft for a project proposal.\n*   An analysis of market trends.",
     },
   ]);
   const [inputValue, setInputValue] = useState('');
