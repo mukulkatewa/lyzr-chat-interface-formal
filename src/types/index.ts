@@ -1,5 +1,3 @@
 
-export interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-}
+// This file is intentionally left empty as no shared types are currently needed.
+export {};
