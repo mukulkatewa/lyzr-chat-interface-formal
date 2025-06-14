@@ -39,9 +39,30 @@ async function getAiResponse(message: string): Promise<string> {
 
   try {
     const parsed = JSON.parse(aiMessage);
-    // If it parses and the result has a 'response' property, use that.
-    if (parsed && parsed.response) {
-      aiMessage = parsed.response;
+
+    if (parsed && typeof parsed === 'object' && parsed !== null) {
+      // If the parsed content is an object, we need to extract the message.
+      // We'll prioritize a 'response' key, but fall back to the first string value we find.
+      if (typeof parsed.response === 'string') {
+        aiMessage = parsed.response;
+      } else {
+        const firstStringValue = Object.values(parsed).find(
+          (v) => typeof v === 'string'
+        );
+        if (firstStringValue) {
+          aiMessage = firstStringValue;
+        } else {
+          aiMessage =
+            'Could not extract a readable message from the AI response.';
+          console.error(
+            'Could not find a string value in AI response object:',
+            parsed
+          );
+        }
+      }
+    } else if (typeof parsed === 'string') {
+      // Handles cases where the response is a JSON-encoded string like "\"Hello\""
+      aiMessage = parsed;
     }
   } catch (e) {
     // If parsing fails, it's not a JSON string, so we'll use the original content.
