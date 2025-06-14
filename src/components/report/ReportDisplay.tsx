@@ -8,8 +8,8 @@ interface ReportDisplayProps {
 
 export function ReportDisplay({ content }: ReportDisplayProps) {
   return (
-    <div className="bg-card border rounded-xl p-6 animate-fade-in">
-      <div className="prose prose-sm max-w-full dark:prose-invert">
+    <div className="bg-card/50 border border-white/10 rounded-xl p-6 animate-fade-in">
+      <div className="prose prose-sm max-w-full dark:prose-invert prose-headings:text-primary prose-a:text-primary">
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={{

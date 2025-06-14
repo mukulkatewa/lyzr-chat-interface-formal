@@ -1,10 +1,8 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Send, LoaderCircle, FileText } from 'lucide-react';
+import { LoaderCircle, FileText, Download } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { aiconfigs } from '@/config';
 import { ReportDisplay } from './ReportDisplay';
@@ -76,8 +74,11 @@ async function generateCombinedReport(message: string): Promise<string> {
   return results.map((res, index) => `## Part ${index + 1} of the Report\n\n${res}`).join('\n\n---\n\n');
 }
 
-export function ReportGenerator() {
-  const [prompt, setPrompt] = useState('');
+interface ReportGeneratorProps {
+  initialPrompt: string;
+}
+
+export function ReportGenerator({ initialPrompt }: ReportGeneratorProps) {
   const [report, setReport] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -89,59 +90,66 @@ export function ReportGenerator() {
     onError: (error) => {
       toast({
         variant: 'destructive',
-        title: 'Error generating report',
-        description: error.message,
+        title: 'Cosmic Anomaly Detected!',
+        description: "Failed to generate blueprint. Please try again or contact mission control.",
       });
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!prompt.trim() || mutation.isPending) return;
-    setReport(null);
-    mutation.mutate(prompt.trim());
+  useEffect(() => {
+    if (initialPrompt && !mutation.isPending && !report) {
+      mutation.mutate(initialPrompt);
+    }
+  }, [initialPrompt, mutation, report]);
+
+  const handleDownload = () => {
+    if (!report) return;
+    const blob = new Blob([report], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'aetherius-labs-blueprint.md';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   return (
     <div className="flex flex-col gap-8 h-full">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <h2 className="text-2xl font-semibold text-foreground tracking-tight">
-          What report would you like to generate?
+       <div className="flex justify-between items-center">
+        <h2 className="text-3xl font-bold text-foreground tracking-tight">
+          Your AI Blueprint
         </h2>
-        <Textarea
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="e.g., 'A summary of Q2 sales figures, highlighting top-performing regions and products.'"
-          className="min-h-[100px] text-base"
-          disabled={mutation.isPending}
-        />
-        <Button type="submit" disabled={!prompt.trim() || mutation.isPending} size="lg">
-          {mutation.isPending ? (
-            <LoaderCircle className="mr-2" />
-          ) : (
-            <Send className="mr-2" />
-          )}
-          Generate Report
-        </Button>
-      </form>
+        {report && !mutation.isPending && (
+            <Button onClick={handleDownload} variant="secondary">
+                <Download className="mr-2 h-4 w-4" />
+                Download Blueprint
+            </Button>
+        )}
+      </div>
 
-      <div className="flex-1 min-h-[300px]">
+
+      <div className="flex-1 min-h-[500px]">
         {mutation.isPending && (
-          <div className="space-y-4 p-6 border rounded-xl">
-            <Skeleton className="h-8 w-1/3" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-4/5" />
+          <div className="space-y-4 p-6 border border-white/10 rounded-xl bg-card/50">
+            <h3 className="text-xl font-semibold text-primary animate-pulse">Generating your cosmic blueprint...</h3>
+            <Skeleton className="h-8 w-1/3 bg-muted/50" />
+            <Skeleton className="h-4 w-full bg-muted/50" />
+            <Skeleton className="h-4 w-full bg-muted/50" />
+            <Skeleton className="h-4 w-4/5 bg-muted/50" />
+            <Skeleton className="h-4 w-full mt-4 bg-muted/50" />
+            <Skeleton className="h-4 w-2/3 bg-muted/50" />
           </div>
         )}
         
         {report && !mutation.isPending && <ReportDisplay content={report} />}
         
-        {!report && !mutation.isPending && (
-          <div className="flex flex-col items-center justify-center text-center text-muted-foreground h-full border-2 border-dashed rounded-xl p-8">
+        {mutation.isError && (
+          <div className="flex flex-col items-center justify-center text-center text-destructive h-full border-2 border-dashed border-destructive/50 rounded-xl p-8 bg-destructive/20">
              <FileText className="h-12 w-12 mb-4" />
-             <h3 className="text-lg font-semibold">Your generated report will appear here</h3>
-             <p className="text-sm">Enter a prompt above and click "Generate Report" to get started.</p>
+             <h3 className="text-lg font-semibold">Cosmic Anomaly Detected!</h3>
+             <p className="text-sm">We encountered an issue while generating your report. Please try again later.</p>
           </div>
         )}
       </div>
