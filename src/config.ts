@@ -25,4 +25,11 @@ export const aiconfigs = [
     agentId: '684c1a1de5203d8a7b64cd82',
     sessionId: '684c1a1de5203d8a7b64cd82-793i0ajn525',
   },
+  {
+    apiKey: 'sk-default-H0RDPuvT95RpWUepisEbn0NVZEs0hBEf',
+    apiUrl: 'https://agent-prod.studio.lyzr.ai/v3/inference/chat/',
+    userId: 'katewamukul@gmail.com',
+    agentId: '68481c3db67a5a754564ec0b',
+    sessionId: '68481c3db67a5a754564ec0b-sng68t24xc',
+  },
 ];
