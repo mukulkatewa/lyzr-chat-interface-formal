@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { LoaderCircle, FileText, Download } from 'lucide-react';
+import { Download, FileText } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { aiconfigs } from '@/config';
 import { ReportDisplay } from './ReportDisplay';
 import { Skeleton } from "@/components/ui/skeleton";
+import { SwotDashboard } from './swot/SwotDashboard';
+import type { SwotData } from '@/types/swot';
 
 interface AgentConfig {
   apiKey: string;
@@ -49,7 +51,7 @@ async function getAiResponse({ message, agentConfig }: { message: string, agentC
         if (firstStringValue) {
           aiMessage = firstStringValue as string;
         } else {
-          aiMessage = 'Could not extract a readable message from the AI response.';
+          aiMessage = JSON.stringify(parsed);
         }
       }
     } else if (typeof parsed === 'string') {
@@ -62,16 +64,13 @@ async function getAiResponse({ message, agentConfig }: { message: string, agentC
   return aiMessage;
 }
 
-async function generateCombinedReport(message: string): Promise<string> {
-  // Call both APIs in parallel
+
+async function generateCombinedReport(message: string): Promise<string[]> {
   const promises = aiconfigs.map(agentConfig => 
     getAiResponse({ message, agentConfig })
   );
   
-  const results = await Promise.all(promises);
-  
-  // Combine results with headers and a separator
-  return results.map((res, index) => `## Part ${index + 1} of the Report\n\n${res}`).join('\n\n---\n\n');
+  return Promise.all(promises);
 }
 
 interface ReportGeneratorProps {
@@ -79,13 +78,23 @@ interface ReportGeneratorProps {
 }
 
 export function ReportGenerator({ initialPrompt }: ReportGeneratorProps) {
-  const [report, setReport] = useState<string | null>(null);
+  const [reportData, setReportData] = useState<SwotData | string | null>(null);
   const { toast } = useToast();
 
   const mutation = useMutation({
     mutationFn: generateCombinedReport,
     onSuccess: (data) => {
-      setReport(data);
+      try {
+        const parsedData = JSON.parse(data[0]);
+        if (parsedData.swot && parsedData.swot.strengths) {
+          setReportData(parsedData);
+        } else {
+          setReportData(data.join('\n\n---\n\n'));
+        }
+      } catch (error) {
+        console.error("Failed to parse AI response as SWOT JSON:", error);
+        setReportData(data.join('\n\n---\n\n'));
+      }
     },
     onError: (error) => {
       toast({
@@ -97,23 +106,66 @@ export function ReportGenerator({ initialPrompt }: ReportGeneratorProps) {
   });
 
   useEffect(() => {
-    if (initialPrompt && !mutation.isPending && !report) {
+    if (initialPrompt && !mutation.isPending && !reportData) {
       mutation.mutate(initialPrompt);
     }
-  }, [initialPrompt, mutation, report]);
+  }, [initialPrompt, mutation, reportData]);
 
   const handleDownload = () => {
-    if (!report) return;
-    const blob = new Blob([report], { type: 'text/markdown;charset=utf-8' });
+    if (!reportData) return;
+    
+    const isSwot = typeof reportData === 'object' && reportData !== null;
+    const content = isSwot
+      ? JSON.stringify(reportData, null, 2)
+      : reportData;
+      
+    const blob = new Blob([content], { type: isSwot ? 'application/json;charset=utf-8' : 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'aetherius-labs-blueprint.md';
+    a.download = `aetherius-labs-blueprint.${isSwot ? 'json' : 'md'}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+
+  const renderContent = () => {
+    if (mutation.isPending) {
+      return (
+        <div className="space-y-4 p-6 border border-white/10 rounded-xl bg-card/50">
+          <h3 className="text-xl font-semibold text-primary animate-pulse">Generating your cosmic blueprint...</h3>
+          <Skeleton className="h-8 w-1/3 bg-muted/50" />
+          <Skeleton className="h-4 w-full bg-muted/50" />
+          <Skeleton className="h-4 w-full bg-muted/50" />
+          <Skeleton className="h-4 w-4/5 bg-muted/50" />
+          <Skeleton className="h-4 w-full mt-4 bg-muted/50" />
+          <Skeleton className="h-4 w-2/3 bg-muted/50" />
+        </div>
+      );
+    }
+
+    if (mutation.isError) {
+      return (
+        <div className="flex flex-col items-center justify-center text-center text-destructive h-full border-2 border-dashed border-destructive/50 rounded-xl p-8 bg-destructive/20">
+           <FileText className="h-12 w-12 mb-4" />
+           <h3 className="text-lg font-semibold">Cosmic Anomaly Detected!</h3>
+           <p className="text-sm">We encountered an issue while generating your report. Please try again later.</p>
+        </div>
+      );
+    }
+
+    if (reportData) {
+      if (typeof reportData === 'object' && reportData !== null) {
+        return <SwotDashboard data={reportData} />;
+      }
+      if (typeof reportData === 'string') {
+        return <ReportDisplay content={reportData} />;
+      }
+    }
+
+    return null;
+  }
 
   return (
     <div className="flex flex-col gap-8 h-full">
@@ -121,7 +173,7 @@ export function ReportGenerator({ initialPrompt }: ReportGeneratorProps) {
         <h2 className="text-3xl font-bold text-foreground tracking-tight">
           Your AI Blueprint
         </h2>
-        {report && !mutation.isPending && (
+        {reportData && !mutation.isPending && (
             <Button onClick={handleDownload} variant="secondary">
                 <Download className="mr-2 h-4 w-4" />
                 Download Blueprint
@@ -129,29 +181,8 @@ export function ReportGenerator({ initialPrompt }: ReportGeneratorProps) {
         )}
       </div>
 
-
       <div className="flex-1 min-h-[500px]">
-        {mutation.isPending && (
-          <div className="space-y-4 p-6 border border-white/10 rounded-xl bg-card/50">
-            <h3 className="text-xl font-semibold text-primary animate-pulse">Generating your cosmic blueprint...</h3>
-            <Skeleton className="h-8 w-1/3 bg-muted/50" />
-            <Skeleton className="h-4 w-full bg-muted/50" />
-            <Skeleton className="h-4 w-full bg-muted/50" />
-            <Skeleton className="h-4 w-4/5 bg-muted/50" />
-            <Skeleton className="h-4 w-full mt-4 bg-muted/50" />
-            <Skeleton className="h-4 w-2/3 bg-muted/50" />
-          </div>
-        )}
-        
-        {report && !mutation.isPending && <ReportDisplay content={report} />}
-        
-        {mutation.isError && (
-          <div className="flex flex-col items-center justify-center text-center text-destructive h-full border-2 border-dashed border-destructive/50 rounded-xl p-8 bg-destructive/20">
-             <FileText className="h-12 w-12 mb-4" />
-             <h3 className="text-lg font-semibold">Cosmic Anomaly Detected!</h3>
-             <p className="text-sm">We encountered an issue while generating your report. Please try again later.</p>
-          </div>
-        )}
+        {renderContent()}
       </div>
     </div>
   );
