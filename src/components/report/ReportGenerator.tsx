@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { Download, FileText } from 'lucide-react';
+import { Download, FileText, Sparkles } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -63,7 +63,6 @@ async function getAiResponse({ message, agentConfig }: { message: string, agentC
 
   return aiMessage;
 }
-
 
 async function generateCombinedReport(message: string): Promise<string[]> {
   const promises = aiconfigs.map(agentConfig => 
@@ -142,24 +141,31 @@ export function ReportGenerator({ initialPrompt }: ReportGeneratorProps) {
   const renderContent = () => {
     if (mutation.isPending) {
       return (
-        <div className="space-y-4 p-6 border border-white/10 rounded-xl bg-card/50">
-          <h3 className="text-xl font-semibold text-primary animate-pulse">Generating your cosmic blueprint...</h3>
-          <Skeleton className="h-8 w-1/3 bg-muted/50" />
-          <Skeleton className="h-4 w-full bg-muted/50" />
-          <Skeleton className="h-4 w-full bg-muted/50" />
-          <Skeleton className="h-4 w-4/5 bg-muted/50" />
-          <Skeleton className="h-4 w-full mt-4 bg-muted/50" />
-          <Skeleton className="h-4 w-2/3 bg-muted/50" />
+        <div className="space-y-6 p-8 border border-slate-700/50 rounded-xl bg-slate-900/30 backdrop-blur-sm">
+          <div className="flex items-center space-x-3">
+            <Sparkles className="h-6 w-6 text-purple-400 animate-spin" />
+            <h3 className="text-xl font-semibold text-cyan-400 animate-pulse">
+              Generating your cosmic blueprint...
+            </h3>
+          </div>
+          <div className="space-y-4">
+            <Skeleton className="h-6 w-1/2 bg-slate-700/50" />
+            <Skeleton className="h-4 w-full bg-slate-700/50" />
+            <Skeleton className="h-4 w-full bg-slate-700/50" />
+            <Skeleton className="h-4 w-3/4 bg-slate-700/50" />
+            <Skeleton className="h-4 w-full mt-6 bg-slate-700/50" />
+            <Skeleton className="h-4 w-2/3 bg-slate-700/50" />
+          </div>
         </div>
       );
     }
 
     if (mutation.isError) {
       return (
-        <div className="flex flex-col items-center justify-center text-center text-destructive h-full border-2 border-dashed border-destructive/50 rounded-xl p-8 bg-destructive/20">
-           <FileText className="h-12 w-12 mb-4" />
+        <div className="flex flex-col items-center justify-center text-center text-red-400 h-64 border-2 border-dashed border-red-500/50 rounded-xl p-8 bg-red-900/10">
+           <FileText className="h-16 w-16 mb-4" />
            <h3 className="text-lg font-semibold">Cosmic Anomaly Detected!</h3>
-           <p className="text-sm">We encountered an issue while generating your report. Please try again later.</p>
+           <p className="text-sm text-gray-400">We encountered a temporal distortion while generating your report. Please try again.</p>
         </div>
       );
     }
@@ -177,20 +183,21 @@ export function ReportGenerator({ initialPrompt }: ReportGeneratorProps) {
   }
 
   return (
-    <div className="flex flex-col gap-8 h-full">
-       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-foreground tracking-tight">
-          Your AI Blueprint
-        </h2>
-        {reportData && !mutation.isPending && (
-            <Button onClick={handleDownload} variant="secondary">
-                <Download className="mr-2 h-4 w-4" />
-                Download Blueprint
-            </Button>
-        )}
-      </div>
+    <div className="space-y-6">
+      {reportData && !mutation.isPending && (
+        <div className="flex justify-end">
+          <Button 
+            onClick={handleDownload} 
+            variant="outline"
+            className="bg-slate-800/50 border-slate-600/50 text-gray-200 hover:bg-slate-700/50 hover:border-cyan-400/50"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Download Blueprint
+          </Button>
+        </div>
+      )}
 
-      <div className="flex-1 min-h-[500px]">
+      <div className="min-h-[400px]">
         {renderContent()}
       </div>
     </div>
