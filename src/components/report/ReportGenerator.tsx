@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { Download, FileText, Sparkles } from 'lucide-react';
@@ -7,8 +8,6 @@ import { useToast } from '@/hooks/use-toast';
 import { aiconfigs } from '@/config';
 import { ReportDisplay } from './ReportDisplay';
 import { Skeleton } from "@/components/ui/skeleton";
-import { SwotDashboard } from './swot/SwotDashboard';
-import type { SwotData } from '@/types/swot';
 
 interface AgentConfig {
   apiKey: string;
@@ -77,23 +76,14 @@ interface ReportGeneratorProps {
 }
 
 export function ReportGenerator({ initialPrompt }: ReportGeneratorProps) {
-  const [reportData, setReportData] = useState<SwotData | string | null>(null);
+  const [reportData, setReportData] = useState<string | null>(null);
   const { toast } = useToast();
 
   const mutation = useMutation({
     mutationFn: generateCombinedReport,
     onSuccess: (data) => {
-      try {
-        const parsedData = JSON.parse(data[0]);
-        if (parsedData.swot && parsedData.swot.strengths) {
-          setReportData(parsedData);
-        } else {
-          setReportData(data.join('\n\n---\n\n'));
-        }
-      } catch (error) {
-        console.error("Failed to parse AI response as SWOT JSON:", error);
-        setReportData(data.join('\n\n---\n\n'));
-      }
+      // Always treat the response as markdown content
+      setReportData(data.join('\n\n---\n\n'));
     },
     onError: (error) => {
       toast({
@@ -113,25 +103,12 @@ export function ReportGenerator({ initialPrompt }: ReportGeneratorProps) {
   const handleDownload = () => {
     if (!reportData) return;
 
-    let content: string;
-    let fileExtension: 'json' | 'md';
-    let mimeType: string;
-
-    if (typeof reportData === 'object' && reportData !== null) {
-      content = JSON.stringify(reportData, null, 2);
-      fileExtension = 'json';
-      mimeType = 'application/json;charset=utf-8';
-    } else {
-      content = reportData as string;
-      fileExtension = 'md';
-      mimeType = 'text/markdown;charset=utf-8';
-    }
-      
-    const blob = new Blob([content], { type: mimeType });
+    const content = reportData;
+    const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `aetherius-labs-blueprint.${fileExtension}`;
+    a.download = 'aetherius-labs-blueprint.md';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -171,12 +148,7 @@ export function ReportGenerator({ initialPrompt }: ReportGeneratorProps) {
     }
 
     if (reportData) {
-      if (typeof reportData === 'object' && reportData !== null) {
-        return <SwotDashboard data={reportData} />;
-      }
-      if (typeof reportData === 'string') {
-        return <ReportDisplay content={reportData} />;
-      }
+      return <ReportDisplay content={reportData} />;
     }
 
     return null;
