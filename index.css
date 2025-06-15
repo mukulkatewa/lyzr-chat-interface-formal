@@ -1,8 +1,7 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
- 
+
 @layer base {
   :root {
     --background: 240 5% 96%;
@@ -35,65 +34,61 @@
  
     --radius: 0.5rem;
   }
- 
+
   .dark {
-    --background: 210 40% 2%; /* Deep space black */
+    --background: 221 46% 8%;
     --foreground: 210 40% 98%;
- 
-    --card: 217 33% 6%; /* Dark cosmic blue */
+
+    --card: 220 36% 15% / 65%;
     --card-foreground: 210 40% 98%;
- 
-    --popover: 217 33% 6%;
+
+    --popover: 220 36% 15% / 65%;
     --popover-foreground: 210 40% 98%;
- 
-    --primary: 180 100% 50%; /* Bright cyan */
-    --primary-foreground: 217 33% 6%;
- 
-    --secondary: 260 40% 15%; /* Deep purple */
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 224 71% 4%;
+
+    --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
- 
-    --muted: 217 33% 12%;
+
+    --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
- 
-    --accent: 280 100% 70%; /* Bright purple */
-    --accent-foreground: 217 33% 6%;
- 
-    --destructive: 0 63% 31%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
- 
-    --border: 217 33% 20%;
-    --input: 217 33% 20%;
-    --ring: 180 100% 50%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 215 20.2% 65.1%;
   }
-}
- 
-@layer base {
+
   * {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-    background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #0c0c0c 100%);
+    -webkit-font-smoothing: antialiased;
+    background: linear-gradient(135deg, #101010 0%, #1a2236 100%);
     min-height: 100vh;
   }
-}
 
-@layer utilities {
-  .bg-gradient-radial {
-    background: radial-gradient(ellipse at center, var(--tw-gradient-stops));
+  .glass-panel {
+    @apply bg-card backdrop-blur-2xl bg-opacity-70 rounded-2xl border border-white/15 shadow-2xl;
   }
-  
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
+  .glass-blur-bar {
+    @apply backdrop-blur-md bg-white/5 border-b border-white/10 shadow-xl;
   }
-  
-  @keyframes float {
-    0%, 100% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-20px);
-    }
+  .glass-hover {
+    @apply transition-all duration-300 hover:shadow-2xl hover:bg-opacity-80;
+  }
+  .apple-title {
+    @apply text-5xl md:text-6xl font-bold tracking-tight text-center text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-400;
+  }
+  .apple-subtitle {
+    @apply text-2xl md:text-3xl text-gray-200 text-center mb-4;
   }
 }

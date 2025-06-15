@@ -1,12 +1,9 @@
-
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Layout } from '@/components/shared/Layout';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Send, Sparkles } from 'lucide-react';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Layout } from "@/components/shared/Layout";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 const questions = [
   {
@@ -81,100 +78,83 @@ const QuestionnairePage = () => {
   const navigate = useNavigate();
 
   const handleInputChange = (id: string, value: string) => {
-    setAnswers(prev => ({ ...prev, [id]: value }));
+    setAnswers((prev) => ({ ...prev, [id]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const prompt = Object.entries(answers)
-      .map(([key, value]) => `Question: ${questions.flatMap(q => q.items).find(i => i.id === key)?.label}\nAnswer: ${value}`)
-      .join('\n\n');
-    
+      .map(
+        ([key, value]) =>
+          `Question: ${
+            questions.flatMap((q) => q.items).find((i) => i.id === key)?.label
+          }\nAnswer: ${value}`
+      )
+      .join("\n\n");
     const encodedPrompt = encodeURIComponent(prompt);
     navigate(`/report?prompt=${encodedPrompt}`);
   };
-  
-  const allQuestions = questions.flatMap(q => q.items);
-  const isFormComplete = allQuestions.every(q => answers[q.id] && answers[q.id].trim() !== '');
+
+  const allQuestions = questions.flatMap((q) => q.items);
+  const isFormComplete = allQuestions.every(
+    (q) => answers[q.id] && answers[q.id].trim() !== ""
+  );
 
   return (
     <Layout>
-      <div className="container mx-auto max-w-4xl py-8">
-        {/* Header */}
-        <div className="text-center mb-12 relative">
-          <div className="absolute inset-0 -z-10">
-            <div className="absolute top-4 left-1/4 w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
-            <div className="absolute top-8 right-1/3 w-1 h-1 bg-cyan-400 rounded-full animate-pulse delay-500"></div>
-            <div className="absolute bottom-4 right-1/4 w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse delay-1000"></div>
-          </div>
-          
-          <div className="flex items-center justify-center space-x-3 mb-4">
-            <Sparkles className="h-8 w-8 text-purple-400 animate-spin" />
-            <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
-              Nebula Navigator Questionnaire
-            </h1>
-            <Sparkles className="h-8 w-8 text-cyan-400 animate-spin" />
-          </div>
-          
-          <p className="text-gray-400 text-lg">
-            Chart your course through the cosmos of AI possibilities
-          </p>
+      <div className="w-full min-h-[90vh] flex items-center justify-center pt-2 pb-12 relative">
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#101622] via-gray-900/90 to-[#111119]"></div>
+          <div className="absolute left-1/3 top-[20%] w-[360px] h-[360px] rounded-full bg-cyan-400/10 blur-2xl opacity-40"></div>
+          <div className="absolute right-1/4 top-[43%] w-[240px] h-[240px] rounded-full bg-purple-400/10 blur-2xl opacity-40"></div>
         </div>
-        
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-8">
-          {questions.map((section) => (
-            <Card key={section.section} className="bg-slate-900/50 border-slate-700/50 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-2xl text-cyan-400 flex items-center space-x-2">
-                  <span>{section.section}</span>
-                  <div className="h-px bg-gradient-to-r from-cyan-400 to-transparent flex-1 ml-4"></div>
-                </CardTitle>
-                <CardDescription className="text-gray-400">
-                  {section.section === "Business Overview" && "Tell us about your cosmic enterprise"}
-                  {section.section === "AI Usage & Value" && "Your current AI constellation"}
-                  {section.section === "Tech & Team" && "Your technological infrastructure"}
-                  {section.section === "Data & Compliance" && "Your data governance galaxy"}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {section.items.map((item, index) => (
-                  <div key={item.id} className="grid w-full gap-3">
-                    <Label htmlFor={item.id} className="text-base text-gray-200 font-medium">
-                      {index + 1}. {item.label}
-                    </Label>
-                    <Textarea
-                      id={item.id}
-                      placeholder={item.placeholder}
-                      value={answers[item.id] || ''}
-                      onChange={(e) => handleInputChange(item.id, e.target.value)}
-                      className="min-h-[120px] text-base bg-slate-800/50 border-slate-600/50 text-gray-100 placeholder:text-gray-500 focus:border-cyan-400/50 focus:ring-cyan-400/25 transition-all duration-300"
-                      required
-                    />
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          ))}
-          
-          {/* Submit Button */}
-          <div className="flex justify-center pt-8">
-            <Button 
-              type="submit" 
-              size="lg" 
-              disabled={!isFormComplete}
-              className="group relative bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 disabled:from-gray-600 disabled:to-gray-700 text-white font-semibold text-lg px-12 py-6 rounded-full transition-all duration-500 transform hover:scale-105 hover:shadow-xl hover:shadow-purple-500/25 disabled:hover:scale-100 disabled:hover:shadow-none"
-            >
-              <div className="flex items-center space-x-3">
-                <Send className="h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
-                <span>Generate Cosmic Blueprint</span>
+        <div className="relative z-10 w-full max-w-2xl">
+          <form
+            onSubmit={handleSubmit}
+            className="glass-panel px-8 py-14 w-full shadow-2xl space-y-8 glass-hover"
+          >
+            <h1 className="apple-title mb-7">Nebula Navigator Questionnaire</h1>
+            {questions.map((section) => (
+              <div key={section.section}>
+                <div className="text-2xl font-semibold mb-4 mt-8 text-gray-200">
+                  {section.section}
+                </div>
+                <div className="space-y-7">
+                  {section.items.map((item, index) => (
+                    <div key={item.id} className="flex flex-col gap-2">
+                      <Label
+                        htmlFor={item.id}
+                        className="text-base text-gray-100 font-medium"
+                      >
+                        {index + 1}. {item.label}
+                      </Label>
+                      <Textarea
+                        id={item.id}
+                        placeholder={item.placeholder}
+                        value={answers[item.id] || ""}
+                        onChange={(e) =>
+                          handleInputChange(item.id, e.target.value)
+                        }
+                        className="bg-white/10 border border-white/10 backdrop-blur rounded-lg text-base px-4 py-3 text-gray-100 placeholder:text-gray-400 focus:border-cyan-400/50 focus:ring-cyan-400/25 transition-all"
+                        required
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
-              {isFormComplete && (
-                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-cyan-400 to-purple-500 opacity-0 group-hover:opacity-20 transition-opacity duration-500"></div>
-              )}
-            </Button>
-          </div>
-        </form>
+            ))}
+            <div className="flex justify-center mt-12">
+              <Button
+                type="submit"
+                size="lg"
+                disabled={!isFormComplete}
+                className="rounded-full px-12 py-5 text-lg font-semibold glass-hover bg-gradient-to-r from-cyan-400/90 to-purple-500/80 text-white shadow-lg"
+              >
+                Generate Cosmic Blueprint
+              </Button>
+            </div>
+          </form>
+        </div>
       </div>
     </Layout>
   );
