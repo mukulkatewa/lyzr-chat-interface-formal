@@ -1,38 +1,18 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import type { SwotData } from '@/types/swot';
 import { Briefcase, Target, Rocket } from 'lucide-react';
 import { InfoCard } from './InfoCard';
-import { SwotGrid } from './SwotGrid';
-import { QuadrantDetailView } from './QuadrantDetailView';
+import { QuadrantDisplay } from './QuadrantDisplay';
 
 interface SwotDashboardProps {
   data: SwotData;
 }
 
-type QuadrantName = 'strengths' | 'weaknesses' | 'opportunities' | 'threats';
-
 export function SwotDashboard({ data }: SwotDashboardProps) {
-  const [selectedQuadrant, setSelectedQuadrant] = useState<QuadrantName | null>(null);
-
-  if (selectedQuadrant) {
-    const quadrantData = data.swot[selectedQuadrant];
-    if (!quadrantData) {
-      // Handle case where data for selected quadrant is missing
-      return <div>Error: Data for {selectedQuadrant} not found.</div>;
-    }
-    return (
-      <QuadrantDetailView
-        quadrantName={selectedQuadrant}
-        quadrantData={quadrantData}
-        onBack={() => setSelectedQuadrant(null)}
-      />
-    );
-  }
-
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in duration-500">
-      <div className="lg:col-span-1 flex flex-col gap-6">
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <InfoCard title="Business Profile" icon={<Briefcase />}>
           <ul className="text-sm text-muted-foreground space-y-1">
             <li><strong className="text-foreground/80">Industry:</strong> {data.business_profile.industry}</li>
@@ -51,8 +31,12 @@ export function SwotDashboard({ data }: SwotDashboardProps) {
           </ul>
         </InfoCard>
       </div>
-      <div className="lg:col-span-2">
-        <SwotGrid swotData={data.swot} onSelectQuadrant={setSelectedQuadrant} />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6" style={{ minHeight: '600px' }}>
+        {data.swot.strengths && <QuadrantDisplay quadrantName="strengths" quadrantData={data.swot.strengths} />}
+        {data.swot.weaknesses && <QuadrantDisplay quadrantName="weaknesses" quadrantData={data.swot.weaknesses} />}
+        {data.swot.opportunities && <QuadrantDisplay quadrantName="opportunities" quadrantData={data.swot.opportunities} />}
+        {data.swot.threats && <QuadrantDisplay quadrantName="threats" quadrantData={data.swot.threats} />}
       </div>
     </div>
   );

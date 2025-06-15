@@ -8,6 +8,8 @@ import { useToast } from '@/hooks/use-toast';
 import { aiconfigs } from '@/config';
 import { ReportDisplay } from './ReportDisplay';
 import { Skeleton } from "@/components/ui/skeleton";
+import { SwotDashboard } from './swot/SwotDashboard';
+import type { SwotData } from '@/types/swot';
 
 interface AgentConfig {
   apiKey: string;
@@ -45,7 +47,11 @@ async function getAiResponse({ message, agentConfig }: { message: string, agentC
     if (parsed && typeof parsed === 'object' && parsed !== null) {
       if (typeof parsed.response === 'string') {
         aiMessage = parsed.response;
-      } else {
+      } else if (parsed.swot && parsed.business_profile) {
+        // This looks like our SWOT object, pass it through as a stringified JSON
+        aiMessage = JSON.stringify(parsed);
+      }
+      else {
         const firstStringValue = Object.values(parsed).find((v) => typeof v === 'string');
         if (firstStringValue) {
           aiMessage = firstStringValue as string;
@@ -64,6 +70,13 @@ async function getAiResponse({ message, agentConfig }: { message: string, agentC
 }
 
 async function generateCombinedReport(message: string): Promise<string[]> {
+  // For SWOT, we only expect one agent to respond with the JSON data.
+  // We'll call just the first one. A more robust solution could find the correct agent.
+  const swotAgentConfig = aiconfigs[0];
+  if (message.includes("SWOT analysis")) {
+     return [await getAiResponse({ message, agentConfig: swotAgentConfig })];
+  }
+
   const promises = aiconfigs.map(agentConfig => 
     getAiResponse({ message, agentConfig })
   );
@@ -76,14 +89,23 @@ interface ReportGeneratorProps {
 }
 
 export function ReportGenerator({ initialPrompt }: ReportGeneratorProps) {
-  const [reportData, setReportData] = useState<string | null>(null);
+  const [reportData, setReportData] = useState<SwotData | string | null>(null);
   const { toast } = useToast();
 
   const mutation = useMutation({
     mutationFn: generateCombinedReport,
     onSuccess: (data) => {
-      // Always treat the response as markdown content
-      setReportData(data.join('\n\n---\n\n'));
+      const potentialJson = data[0];
+      try {
+        const parsedData = JSON.parse(potentialJson);
+        if (parsedData && parsedData.swot && parsedData.swot.strengths) {
+          setReportData(parsedData);
+        } else {
+          setReportData(data.join('\n\n---\n\n'));
+        }
+      } catch (error) {
+        setReportData(data.join('\n\n---\n\n'));
+      }
     },
     onError: (error) => {
       toast({
@@ -103,12 +125,25 @@ export function ReportGenerator({ initialPrompt }: ReportGeneratorProps) {
   const handleDownload = () => {
     if (!reportData) return;
 
-    const content = reportData;
-    const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+    let content: string;
+    let fileExtension: 'json' | 'md';
+    let mimeType: string;
+
+    if (typeof reportData === 'object' && reportData !== null) {
+      content = JSON.stringify(reportData, null, 2);
+      fileExtension = 'json';
+      mimeType = 'application/json;charset=utf-8';
+    } else {
+      content = reportData as string;
+      fileExtension = 'md';
+      mimeType = 'text/markdown;charset=utf-8';
+    }
+      
+    const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'aetherius-labs-blueprint.md';
+    a.download = `aetherius-labs-blueprint.${fileExtension}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -148,7 +183,12 @@ export function ReportGenerator({ initialPrompt }: ReportGeneratorProps) {
     }
 
     if (reportData) {
-      return <ReportDisplay content={reportData} />;
+      if (typeof reportData === 'object' && reportData !== null) {
+        return <SwotDashboard data={reportData} />;
+      }
+      if (typeof reportData === 'string') {
+        return <ReportDisplay content={reportData} />;
+      }
     }
 
     return null;
