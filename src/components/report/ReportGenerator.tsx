@@ -113,17 +113,26 @@ export function ReportGenerator({ initialPrompt }: ReportGeneratorProps) {
 
   const handleDownload = () => {
     if (!reportData) return;
-    
-    const isSwot = typeof reportData === 'object' && reportData !== null;
-    const content = isSwot
-      ? JSON.stringify(reportData, null, 2)
-      : reportData;
+
+    let content: string;
+    let fileExtension: 'json' | 'md';
+    let mimeType: string;
+
+    if (typeof reportData === 'object' && reportData !== null) {
+      content = JSON.stringify(reportData, null, 2);
+      fileExtension = 'json';
+      mimeType = 'application/json;charset=utf-8';
+    } else {
+      content = reportData as string;
+      fileExtension = 'md';
+      mimeType = 'text/markdown;charset=utf-8';
+    }
       
-    const blob = new Blob([content], { type: isSwot ? 'application/json;charset=utf-8' : 'text/markdown;charset=utf-8' });
+    const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `aetherius-labs-blueprint.${isSwot ? 'json' : 'md'}`;
+    a.download = `aetherius-labs-blueprint.${fileExtension}`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
